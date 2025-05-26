@@ -1,7 +1,6 @@
 import {
   Cartesian2,
   Cartesian3,
-  Cartographic,
   EllipsoidalOccluder,
   Ellipsoid,
   Math as CesiumMath,
@@ -38,13 +37,6 @@ interface ParticleOptions {
   frameRate: number;
 }
 
-interface ConstructorOptions {
-  gfsUrl: string; // Global Forecast System
-  // gfsUrl: GFSRecord[], // global
-  scene: Scene;
-  particleOptions: ParticleOptions;
-}
-
 const scratchScreenPosition = new Cartesian2();
 
 function indexFor(m: number, min: number, max: number, colorScale: string[]) {
@@ -71,6 +63,10 @@ class CesiumParticles {
 
   constructor(options: ParticleOptions) {
     this.options = options;
+
+    window.addEventListener("resize", () => {
+      this._onResize();
+    });
   }
 
   get scene() {
@@ -87,6 +83,10 @@ class CesiumParticles {
 
   get particles() {
     return this._particles!;
+  }
+
+  _onResize() {
+    this.adjustSize();
   }
 
   addToCesiumScene(scene: Scene) {
@@ -190,9 +190,7 @@ class CesiumParticles {
     let uComp: GFSRecord | undefined;
     let vComp: GFSRecord | undefined;
 
-    {
-      console.time("format-data");
-    }
+    console.time("format-data");
 
     data.forEach(function (record) {
       switch (
