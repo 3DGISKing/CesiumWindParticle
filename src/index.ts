@@ -7,7 +7,7 @@ const viewer = new Viewer("cesiumContainer", {});
 
 const particleOptions = {
   globalAlpha: 0.9,
-  lineWidth: 1,
+  lineWidth: 3,
   colorScale: [
     "rgb(36,104, 180)",
     "rgb(60,157, 194)",
@@ -26,10 +26,10 @@ const particleOptions = {
     "rgb(180,0,35)",
   ],
   // colorScale: "#fff",
-  velocityScale: 1 / 25,
+  velocityScale: 0.025,
   maxAge: 60, // 粒子在重新生成之前绘制的最大帧数
   // particleMultiplier: 1 / 300, // TODO: PATHS = Math.round(width * height * particleMultiplier);
-  paths: 2000,
+  paths: 10000,
   frameRate: 20,
 };
 
@@ -52,5 +52,6 @@ if (useGFS) {
 
   particlePromise.then((particle) => {
     particle.addToCesiumScene(viewer.scene);
+    window.particle = particle;
   });
 }

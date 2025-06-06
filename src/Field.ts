@@ -1,4 +1,3 @@
-
 import Vector from "./Vector";
 import Particle from "./Particle";
 
@@ -14,7 +13,7 @@ interface ConstructorOptions {
     deltaX: number;
     deltaY: number;
 
-    wrappedX?: boolean
+    wrappedX?: boolean;
 }
 
 /**
@@ -31,9 +30,7 @@ function floorMod(a: number, n: number) {
 
 export function isValid(x: any) {
     return x !== null && x !== undefined;
-};
-
-
+}
 
 class Field {
     xmin: number;
@@ -119,11 +116,11 @@ class Field {
         }
 
         return grid;
-    };
+    }
 
     release() {
         this.grid = [];
-    };
+    }
 
     /**
      * grib data extent
@@ -131,7 +128,7 @@ class Field {
      */
     extent() {
         return [this.xmin, this.ymin, this.xmax, this.ymax];
-    };
+    }
     /**
      * Bilinear interpolation for Vector
      * 针对向量进行双线性插值
@@ -144,7 +141,14 @@ class Field {
      * @param   {Number[]} g11
      * @returns {Vector}
      */
-    bilinearInterpolateVector(x: number, y: number, g00: Vector, g10: Vector, g01: Vector, g11: Vector) {
+    bilinearInterpolateVector(
+        x: number,
+        y: number,
+        g00: Vector,
+        g10: Vector,
+        g01: Vector,
+        g11: Vector
+    ) {
         const rx = 1 - x;
         const ry = 1 - y;
         const a = rx * ry;
@@ -155,7 +159,7 @@ class Field {
         const v = g00.v * a + g10.v * b + g01.v * c + g11.v * d;
 
         return new Vector(u, v);
-    };
+    }
 
     /**
      * calculate vector value range
@@ -198,7 +202,7 @@ class Field {
         }
 
         return [min, max];
-    };
+    }
     /**
      * 检查 uv是否合法
      * @param x
@@ -225,7 +229,7 @@ class Field {
         }
 
         return [xmin, xmax];
-    };
+    }
 
     contains(lon: number, lat: number) {
         const _a = this.getWrappedLongitudes(),
@@ -242,7 +246,7 @@ class Field {
         }
 
         return longitudeIn && latitudeIn;
-    };
+    }
     /**
      * 获取经纬度所在的位置索引
      * @param lon
@@ -252,7 +256,7 @@ class Field {
         const i = floorMod(lon - this.xmin, 360) / this.deltaX; // calculate longitude index in wrapped range [0, 360)
         const j = (this.ymax - lat) / this.deltaY; // calculate latitude index in direction +90 to -90
         return [i, j];
-    };
+    }
     /**
      * Nearest value at lon-lat coordinates
      * 线性插值
@@ -271,7 +275,7 @@ class Field {
         const cj = this.clampRowIndex(jj);
 
         return this.valueAtIndexes(ci, cj);
-    };
+    }
 
     /**
      * Get interpolated grid value lon-lat coordinates
@@ -289,13 +293,13 @@ class Field {
             j = _a[1];
 
         return this.interpolatePoint(i, j);
-    };
+    }
 
     hasValueAt(lon: number, lat: number) {
         const value = this.valueAt(lon, lat);
 
         return value !== null;
-    };
+    }
 
     /**
      * 基于向量的双线性插值
@@ -326,7 +330,7 @@ class Field {
             return this.bilinearInterpolateVector(i - fi, j - fj, g00, g10, g01, g11);
         }
         return null;
-    };
+    }
     /**
      * Check the column index is inside the field,
      * adjusting to min or max when needed
@@ -345,7 +349,7 @@ class Field {
             i = maxCol;
         }
         return i;
-    };
+    }
 
     /**
      * Check the row index is inside the field,
@@ -368,7 +372,7 @@ class Field {
         }
 
         return j;
-    };
+    }
     /**
      * from: https://github.com/IHCantabria/Leaflet.CanvasLayer.Field/blob/master/src/Field.js#L252
      * 计算索引位置周围的数据
@@ -390,7 +394,7 @@ class Field {
         const cj = this.clampRowIndex(fj + 1); // 下
 
         return [fi, ci, fj, cj];
-    };
+    }
 
     /**
      * from https://github.com/IHCantabria/Leaflet.CanvasLayer.Field/blob/master/src/Field.js#L277
@@ -419,7 +423,7 @@ class Field {
             }
         }
         return null;
-    };
+    }
     /**
      * Value for grid indexes
      * @param   {Number} i - column index (integer)
@@ -428,7 +432,7 @@ class Field {
      */
     valueAtIndexes(i: number, j: number) {
         return this.grid[j][i]; // <-- j,i !!
-    };
+    }
     /**
      * Lon-Lat for grid indexes
      * @param   {Number} i - column index (integer)
@@ -439,7 +443,7 @@ class Field {
         const lon = this.longitudeAtX(i);
         const lat = this.latitudeAtY(j);
         return [lon, lat];
-    };
+    }
     /**
      * Longitude for grid-index
      * @param   {Number} i - column index (integer)
@@ -454,7 +458,7 @@ class Field {
         }
 
         return lon;
-    };
+    }
     /**
      * Latitude for grid-index
      * @param   {Number} j - row index (integer)
@@ -464,7 +468,7 @@ class Field {
         const halfYPixel = this.deltaY / 2.0;
 
         return this.ymax - halfYPixel - j * this.deltaY;
-    };
+    }
     /**
      * 生成粒子位置
      * @param particle
@@ -472,7 +476,12 @@ class Field {
      * @param height
      * @param unproject
      */
-    assignRandomPosition(particle: Particle, width: number, height: number, unproject: (p: [number, number]) => [number, number] | null) {
+    assignRandomPosition(
+        particle: Particle,
+        width: number,
+        height: number,
+        unproject: (p: [number, number]) => [number, number] | null
+    ) {
         const i = (Math.random() * (width || this.cols)) | 0;
         const j = (Math.random() * (height || this.rows)) | 0;
 
@@ -485,7 +494,7 @@ class Field {
             particle.x = this.longitudeAtX(i);
             particle.y = this.latitudeAtY(j);
         }
-    };
+    }
 }
 
 export default Field;
