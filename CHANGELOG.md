@@ -1,5 +1,11 @@
 # Change Log
 
+### 1.0.5 - 2025-06-09
+
+#### Fixed
+
+-   resize does not work.
+
 ### 1.0.4 - 2025-06-09
 
 #### Fixed

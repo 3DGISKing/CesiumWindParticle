@@ -62,7 +62,9 @@ class CesiumParticles {
         this.options = options;
 
         window.addEventListener("resize", () => {
-            this._onResize();
+            setTimeout(() => {
+                this._onResize();
+            }, 100);
         });
     }
 
