@@ -26,7 +26,7 @@ const particleOptions = {
         "rgb(180,0,35)"
     ],
     // colorScale: "#fff",
-    velocityScale: 0.025,
+    velocityScale: 0.09,
     maxAge: 60, // 粒子在重新生成之前绘制的最大帧数
     // particleMultiplier: 1 / 300, // TODO: PATHS = Math.round(width * height * particleMultiplier);
     paths: 10000,

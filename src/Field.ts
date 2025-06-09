@@ -256,7 +256,7 @@ class Field {
      */
     getDecimalIndexes(lon: number, lat: number) {
         if (lon < 0) {
-            lon = 180 + Math.abs(lon);
+            lon = 360 + lon;
         }
 
         const i = floorMod(lon - this.xmin, 360) / this.deltaX; // calculate longitude index in wrapped range [0, 360)
@@ -462,8 +462,7 @@ class Field {
         // }
 
         if (lon > 180) {
-            lon -= 180;
-            lon = -lon;
+            lon = lon - 360;
         }
 
         return lon;
