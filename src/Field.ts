@@ -141,14 +141,7 @@ class Field {
      * @param   {Number[]} g11
      * @returns {Vector}
      */
-    bilinearInterpolateVector(
-        x: number,
-        y: number,
-        g00: Vector,
-        g10: Vector,
-        g01: Vector,
-        g11: Vector
-    ) {
+    bilinearInterpolateVector(x: number, y: number, g00: Vector, g10: Vector, g01: Vector, g11: Vector) {
         const rx = 1 - x;
         const ry = 1 - y;
         const a = rx * ry;
@@ -232,6 +225,15 @@ class Field {
     }
 
     contains(lon: number, lat: number) {
+        if (lon > 180 || lon < -180) {
+            throw new Error(`invalid longitude: ${lon}`);
+        }
+
+        if (lat > 90 || lat < -90) {
+            throw new Error(`invalid latitude: ${lat}`);
+        }
+        return true;
+
         const _a = this.getWrappedLongitudes(),
             xmin = _a[0],
             xmax = _a[1];
@@ -253,6 +255,10 @@ class Field {
      * @param lat
      */
     getDecimalIndexes(lon: number, lat: number) {
+        if (lon < 0) {
+            lon = 180 + Math.abs(lon);
+        }
+
         const i = floorMod(lon - this.xmin, 360) / this.deltaX; // calculate longitude index in wrapped range [0, 360)
         const j = (this.ymax - lat) / this.deltaY; // calculate latitude index in direction +90 to -90
         return [i, j];
@@ -284,6 +290,14 @@ class Field {
      * @param lat
      */
     interpolatedValueAt(lon: number, lat: number) {
+        if (lon > 180 || lon < -180) {
+            throw new Error(`invalid longitude: ${lon}`);
+        }
+
+        if (lat > 90 || lat < -90) {
+            throw new Error(`invalid latitude: ${lat}`);
+        }
+
         if (!this.contains(lon, lat)) {
             return null;
         }
@@ -433,17 +447,7 @@ class Field {
     valueAtIndexes(i: number, j: number) {
         return this.grid[j][i]; // <-- j,i !!
     }
-    /**
-     * Lon-Lat for grid indexes
-     * @param   {Number} i - column index (integer)
-     * @param   {Number} j - row index (integer)
-     * @returns {Number[]} [lon, lat]
-     */
-    lonLatAtIndexes(i: number, j: number) {
-        const lon = this.longitudeAtX(i);
-        const lat = this.latitudeAtY(j);
-        return [lon, lat];
-    }
+
     /**
      * Longitude for grid-index
      * @param   {Number} i - column index (integer)
@@ -453,8 +457,13 @@ class Field {
         const halfXPixel = this.deltaX / 2.0;
         let lon = this.xmin + halfXPixel + i * this.deltaX;
 
-        if (this.wrappedX) {
-            lon = lon > 180 ? lon - 360 : lon;
+        // if (this.wrappedX) {
+        //     lon = lon > 180 ? lon - 360 : lon;
+        // }
+
+        if (lon > 180) {
+            lon -= 180;
+            lon = -lon;
         }
 
         return lon;
@@ -482,8 +491,8 @@ class Field {
         height: number,
         unproject: (p: [number, number]) => [number, number] | null
     ) {
-        const i = (Math.random() * (width || this.cols)) | 0;
-        const j = (Math.random() * (height || this.rows)) | 0;
+        const i = (Math.random() * width) | 0;
+        const j = (Math.random() * height) | 0;
 
         const coords = unproject([i, j]);
 
@@ -491,8 +500,19 @@ class Field {
             particle.x = coords[0];
             particle.y = coords[1];
         } else {
-            particle.x = this.longitudeAtX(i);
-            particle.y = this.latitudeAtY(j);
+            const col = (Math.random() * this.cols) | 0;
+            const row = (Math.random() * this.rows) | 0;
+
+            particle.x = this.longitudeAtX(col);
+            particle.y = this.latitudeAtY(row);
+        }
+
+        if (particle.x > 180 || particle.x < -180) {
+            throw new Error(`invalid longitude: ${particle.x}`);
+        }
+
+        if (particle.y > 90 || particle.y < -90) {
+            throw new Error(`invalid latitude: ${particle.y}`);
         }
     }
 }
