@@ -1,5 +1,11 @@
 # Change Log
 
+### 1.0.4 - 2025-06-09
+
+#### Fixed
+
+-   remove unexpected lines.
+
 ### 1.0.3 - 2025-06-09
 
 #### Fixed

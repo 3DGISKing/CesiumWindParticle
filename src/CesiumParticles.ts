@@ -265,11 +265,13 @@ class CesiumParticles {
                 // step1
                 if (xt > 180 || xt < -180) {
                     particle.age = maxAge;
+                    particle.xt = undefined;
                     continue;
                 }
 
                 if (yt > 90 || yt < -90) {
                     particle.age = maxAge;
+                    particle.yt = undefined;
                     continue;
                 }
 
@@ -280,8 +282,8 @@ class CesiumParticles {
                     particle.m = vector.m;
                 } else {
                     // Particle isn't visible, but it still moves through the field.
-                    particle.x = xt;
-                    particle.y = yt;
+                    particle.xt = undefined;
+                    particle.yt = undefined;
                     particle.age = maxAge;
                 }
             }
