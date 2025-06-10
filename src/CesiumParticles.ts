@@ -1,6 +1,7 @@
 import {
     Cartesian2,
     Cartesian3,
+    EllipsoidGeodesic,
     EllipsoidalOccluder,
     Ellipsoid,
     Math as CesiumMath,
@@ -38,6 +39,7 @@ interface ParticleOptions {
 }
 
 const scratchScreenPosition = new Cartesian2();
+const geodesic = new EllipsoidGeodesic();
 
 function indexFor(m: number, min: number, max: number, colorScale: string[]) {
     return Math.max(
@@ -57,9 +59,12 @@ class CesiumParticles {
     forceStop = false;
     _then: number = -1;
     animationLoop: number = -1;
+    _velocityScale: number;
 
     constructor(options: ParticleOptions) {
         this.options = options;
+
+        this._velocityScale = options.velocityScale;
 
         window.addEventListener("resize", () => {
             setTimeout(() => {
@@ -111,6 +116,75 @@ class CesiumParticles {
 
         this._then = Date.now();
         this.animate();
+
+        this._scene.camera.moveEnd.addEventListener(() => {
+            this._adjustVelocityScale();
+        });
+    }
+
+    _adjustVelocityScale() {
+        const pixelDistance = this._calcPixelDistance();
+        const pixelSpeed = 1; // in pixel
+        const meterPerDegree = 111111;
+
+        this._velocityScale = (pixelDistance * pixelSpeed) / meterPerDegree;
+    }
+
+    _calcPixelDistance() {
+        const scene = this._scene as Scene;
+
+        const width = scene.canvas.clientWidth;
+        const height = scene.canvas.clientHeight;
+
+        let centerX = (width / 2) | 0;
+        let centerY = (height / 2) | 0;
+
+        const globe = scene.globe;
+
+        let leftPosition;
+        let rightPosition;
+
+        let leftCartographic;
+        let rightCartographic;
+
+        let pixelDistance = -1;
+
+        for (let x = centerX; x < width; x++) {
+            for (let y = centerY; y < height; y++) {
+                const left = scene.camera.getPickRay(new Cartesian2(x, y));
+                const right = scene.camera.getPickRay(new Cartesian2(x + 1, y));
+
+                if (!left) {
+                    continue;
+                }
+
+                if (!right) {
+                    continue;
+                }
+
+                leftPosition = globe.pick(left, scene);
+                rightPosition = globe.pick(right, scene);
+
+                if (!leftPosition) {
+                    continue;
+                }
+
+                if (!rightPosition) {
+                    continue;
+                }
+
+                leftCartographic = globe.ellipsoid.cartesianToCartographic(leftPosition);
+                rightCartographic = globe.ellipsoid.cartesianToCartographic(rightPosition);
+
+                geodesic.setEndPoints(leftCartographic, rightCartographic);
+
+                pixelDistance = geodesic.surfaceDistance;
+
+                return pixelDistance;
+            }
+        }
+
+        throw new Error("should not be reached");
     }
 
     static async createFromGFSUrl(gfsUrl: string, particleOptions: ParticleOptions) {
@@ -238,7 +312,7 @@ class CesiumParticles {
 
         // 清空组
         const maxAge = this.options.maxAge;
-        const velocityScale = this.options.velocityScale;
+        const velocityScale = this._velocityScale;
 
         const particles = this.particles;
         const field = this.field!;
@@ -344,8 +418,8 @@ class CesiumParticles {
             this.drawCoordsParticle(particles[i], min, max);
         }
 
-        console.info(`unintersected Count: ${particles.length} / ${unintersectedCount}`);
-        console.info(`old Count: ${particles.length} / ${oldCount}`);
+        // console.info(`unintersected Count: ${particles.length} / ${unintersectedCount}`);
+        // console.info(`old Count: ${particles.length} / ${oldCount}`);
     }
 
     /**
